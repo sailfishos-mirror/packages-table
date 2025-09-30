@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  1999-2018, University of Amsterdam
+    Copyright (c)  1999-2025, University of Amsterdam
 			      CWI, Amsterdam
+			      SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -47,6 +48,7 @@
 #include "table.h"
 #include "error.h"
 #include <stdlib.h>
+#include <stdbool.h>
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -331,7 +333,7 @@ get_offset_ex(term_t t, table_offset_t *v)
 }
 
 
-static int
+static bool
 get_table_ex(term_t handle, Table *table)
 { int64_t l;
 
@@ -343,16 +345,16 @@ get_table_ex(term_t handle, Table *table)
       return TRUE;
     }
 
-    return existence_error(handle, "table");
+    return existence_error(handle, "table"),false;
   }
 
-  return type_error(handle, "table");
+  return type_error(handle, "table"),false;
 }
 
 
-static int
+static bool
 get_type(atom_t typename, int *type)
-{      if ( typename == ATOM_atom )
+{ if ( typename == ATOM_atom )
     *type = FIELD_ATOM;
   else if ( typename == ATOM_string )
     *type = FIELD_STRING;
@@ -365,9 +367,9 @@ get_type(atom_t typename, int *type)
   else if ( typename == ATOM_float )
     *type = FIELD_FLOAT;
   else
-    return FALSE;
+    return false;
 
-  return TRUE;
+  return true;
 }
 
 
