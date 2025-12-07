@@ -100,25 +100,19 @@ int
 error_func(int type, const char *pred, int argi, intptr_t argl)
 { switch(type)
   { case ERR_INSTANTIATION:
-    { char buf[1024];
-
-      sprintf(buf, "%s: instantiation error on argument %d", pred, argi);
-      return PL_warning("%s", buf);
-    }
+      return PL_warning("%s: instantiation error on argument %d", pred, argi);
     case ERR_IO:
-    { char buf[1024];
-
+    { 
 #ifdef __WINDOWS__
       char *msg = winerror(argi);
-      sprintf(buf, "%s: IO error %s", pred, msg);
+      PL_warning("%s: IO error %s", pred, msg);
       free(msg);
+      return FALSE;
 #else
-      sprintf(buf, "%s: IO error %s", pred, strerror(argi));
+      return PL_warning("%s: IO error %s", pred, strerror(argi));
 #endif
-
-      return PL_warning("%s", buf);
     }
   }
 
-  return PL_warning("%s", "Table package: unknown error");
+  return PL_warning("Table package: unknown error");
 }

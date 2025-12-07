@@ -289,7 +289,7 @@ static int
 format_error(const char *pred, size_t pos, Field f)
 { char buf[1024];
 
-  sprintf(buf, "%s: bad record, field %d (%s), char-index %ld",
+  snprintf(buf, sizeof buf, "%s: bad record, field %d (%s), char-index %ld",
 	  pred, f->index, PL_atom_chars(f->name), (long)pos);
 
   return PL_representation_error(buf);
