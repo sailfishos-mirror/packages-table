@@ -45,41 +45,6 @@
 
 #ifdef __WINDOWS__
 #include <malloc.h>
-
-		 /*******************************
-		 *	       WINDOWS		*
-		 *******************************/
-
-static char *
-winerror(int id)
-{ char *msg;
-  static WORD lang;
-  static int lang_initialised = 0;
-
-  if ( !lang_initialised )
-    lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_UK);
-
-again:
-  if ( !FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
-		      FORMAT_MESSAGE_IGNORE_INSERTS|
-		      FORMAT_MESSAGE_FROM_SYSTEM,
-		      NULL,			/* source */
-		      id,			/* identifier */
-		      lang,
-		      (LPTSTR) &msg,
-		      0,			/* size */
-		      NULL) )			/* arguments */
-  { if ( lang_initialised == 0 )
-    { lang = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
-      lang_initialised = 1;
-      goto again;
-    }
-
-    msg = "Unknown Windows error";
-  }
-
-  return strcpy((char *)malloc(strlen(msg)+1), msg);
-}
 #endif
 
 		 /*******************************
@@ -95,7 +60,6 @@ strerror(int err)
 }
 #endif
 
-
 int
 error_func(int type, const char *pred, int argi, intptr_t argl)
 { switch(type)
@@ -104,9 +68,33 @@ error_func(int type, const char *pred, int argi, intptr_t argl)
     case ERR_IO:
     { 
 #ifdef __WINDOWS__
-      char *msg = winerror(argi);
+      char *msg;
+      static WORD lang;
+      static int lang_initialised = 0;
+
+      if ( !lang_initialised )
+         lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_UK);
+
+again:
+      if ( !FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER|
+		          FORMAT_MESSAGE_IGNORE_INSERTS|
+		          FORMAT_MESSAGE_FROM_SYSTEM,
+		          NULL,			/* source */
+		          argi,			/* identifier */
+		          lang,
+		          (LPTSTR) &msg,
+		          0,			/* size */
+		          NULL) )		/* arguments */
+      { if ( lang_initialised == 0 )
+        { lang = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
+          lang_initialised = 1;
+          goto again;
+        }
+
+        return PL_warning("Unknown Windows error");
+      }
       PL_warning("%s: IO error %s", pred, msg);
-      free(msg);
+      LocalFree(msg);
       return FALSE;
 #else
       return PL_warning("%s: IO error %s", pred, strerror(argi));
